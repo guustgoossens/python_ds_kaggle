@@ -1,2 +1,16 @@
 test.parquet
 train.parquet
+report.aux
+report.html
+report.ipynb
+report.log
+report.out
+report.pdf
+report.tex
+report.toc
+report2.aux
+report2.log
+report2.out
+report2.tex
+__pycache__/
+catboost_info/

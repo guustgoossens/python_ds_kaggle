@@ -1,13 +1,18 @@
 """
 Advanced model comparison for churn prediction.
 
-Tests 10 advanced models on both Day 2 (baseline) and Day 3 (enhanced) feature sets.
+Tests 10 advanced models on both Sprint 2 (baseline) and Sprint 3 (enhanced) feature sets.
 Outputs comparison results to CSV and generates submission files for top models.
 
 Usage:
     python advanced_models.py
 """
 
+from submission import load_features, engineer_features
+from imblearn.ensemble import BalancedRandomForestClassifier
+from catboost import CatBoostClassifier
+from lightgbm import LGBMClassifier
+from xgboost import XGBClassifier
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import StratifiedKFold, cross_val_score
@@ -26,19 +31,14 @@ import warnings
 warnings.filterwarnings('ignore')
 
 # Gradient boosting libraries
-from xgboost import XGBClassifier
-from lightgbm import LGBMClassifier
-from catboost import CatBoostClassifier
 
 # Imbalanced learning
-from imblearn.ensemble import BalancedRandomForestClassifier
 
 # Reuse feature engineering from submission.py
-from submission import load_features, engineer_features
 
 
 def prepare_features(train_df, test_df, apply_engineering=True):
-    """Prepare features for modeling, optionally applying Day 3 engineering."""
+    """Prepare features for modeling, optionally applying Sprint 3 engineering."""
     if apply_engineering:
         train_df, test_df = engineer_features(train_df, test_df)
 
@@ -266,22 +266,23 @@ def main():
     train_df, test_df = load_features()
 
     # Prepare both feature sets
-    print("Preparing Day 2 features (baseline)...")
-    X_day2, y, X_test_day2, test_ids = prepare_features(
+    print("Preparing Sprint 2 features (baseline)...")
+    X_sprint2, y, X_test_sprint2, test_ids = prepare_features(
         train_df.copy(), test_df.copy(), apply_engineering=False
     )
-    print(f"  Day 2: {X_day2.shape[1]} features")
+    print(f"  Sprint 2: {X_sprint2.shape[1]} features")
 
-    print("Preparing Day 3 features (enhanced)...")
-    X_day3, _, X_test_day3, _ = prepare_features(
+    print("Preparing Sprint 3 features (enhanced)...")
+    X_sprint3, _, X_test_sprint3, _ = prepare_features(
         train_df.copy(), test_df.copy(), apply_engineering=True
     )
-    print(f"  Day 3: {X_day3.shape[1]} features")
+    print(f"  Sprint 3: {X_sprint3.shape[1]} features")
 
     # Calculate class imbalance
     n_neg = (y == 0).sum()
     n_pos = (y == 1).sum()
-    print(f"\nClass distribution: {n_neg} non-churn, {n_pos} churn ({n_pos/(n_neg+n_pos)*100:.1f}%)")
+    print(
+        f"\nClass distribution: {n_neg} non-churn, {n_pos} churn ({n_pos/(n_neg+n_pos)*100:.1f}%)")
 
     # Get models
     models = get_models(n_neg, n_pos)
@@ -289,30 +290,30 @@ def main():
     # Store results
     results = []
 
-    # Evaluate on Day 2 features
+    # Evaluate on Sprint 2 features
     print("\n" + "-" * 60)
-    print("Evaluating models on Day 2 features...")
+    print("Evaluating models on Sprint 2 features...")
     print("-" * 60)
 
     for i, (name, model) in enumerate(models.items(), 1):
         print(f"  [{i:2d}/10] {name}...", end=" ", flush=True)
         try:
-            metrics = evaluate_model(model, X_day2, y)
+            metrics = evaluate_model(model, X_sprint2, y)
             print(f"Acc={metrics['accuracy_mean']:.4f}, "
                   f"F1={metrics['f1_mean']:.4f}, "
                   f"AUC={metrics['roc_auc_mean']:.4f}")
             results.append({
                 'model': name,
-                'feature_set': 'Day2',
-                'n_features': X_day2.shape[1],
+                'feature_set': 'Sprint2',
+                'n_features': X_sprint2.shape[1],
                 **metrics
             })
         except Exception as e:
             print(f"Error: {e}")
             results.append({
                 'model': name,
-                'feature_set': 'Day2',
-                'n_features': X_day2.shape[1],
+                'feature_set': 'Sprint2',
+                'n_features': X_sprint2.shape[1],
                 'accuracy_mean': np.nan,
                 'accuracy_std': np.nan,
                 'f1_mean': np.nan,
@@ -321,32 +322,32 @@ def main():
                 'roc_auc_std': np.nan
             })
 
-    # Evaluate on Day 3 features
+    # Evaluate on Sprint 3 features
     print("\n" + "-" * 60)
-    print("Evaluating models on Day 3 features...")
+    print("Evaluating models on Sprint 3 features...")
     print("-" * 60)
 
     for i, (name, model) in enumerate(models.items(), 1):
         print(f"  [{i:2d}/10] {name}...", end=" ", flush=True)
         try:
-            # Need fresh model instance for Day 3
+            # Need fresh model instance for Sprint 3
             fresh_models = get_models(n_neg, n_pos)
-            metrics = evaluate_model(fresh_models[name], X_day3, y)
+            metrics = evaluate_model(fresh_models[name], X_sprint3, y)
             print(f"Acc={metrics['accuracy_mean']:.4f}, "
                   f"F1={metrics['f1_mean']:.4f}, "
                   f"AUC={metrics['roc_auc_mean']:.4f}")
             results.append({
                 'model': name,
-                'feature_set': 'Day3',
-                'n_features': X_day3.shape[1],
+                'feature_set': 'Sprint3',
+                'n_features': X_sprint3.shape[1],
                 **metrics
             })
         except Exception as e:
             print(f"Error: {e}")
             results.append({
                 'model': name,
-                'feature_set': 'Day3',
-                'n_features': X_day3.shape[1],
+                'feature_set': 'Sprint3',
+                'n_features': X_sprint3.shape[1],
                 'accuracy_mean': np.nan,
                 'accuracy_std': np.nan,
                 'f1_mean': np.nan,
@@ -367,11 +368,11 @@ def main():
     valid_results = results_df.dropna(subset=['accuracy_mean'])
 
     best_overall = valid_results.loc[valid_results['accuracy_mean'].idxmax()]
-    best_day2 = valid_results[valid_results['feature_set'] == 'Day2'].loc[
-        valid_results[valid_results['feature_set'] == 'Day2']['accuracy_mean'].idxmax()
+    best_sprint2 = valid_results[valid_results['feature_set'] == 'Sprint2'].loc[
+        valid_results[valid_results['feature_set'] == 'Sprint2']['accuracy_mean'].idxmax()
     ]
-    best_day3 = valid_results[valid_results['feature_set'] == 'Day3'].loc[
-        valid_results[valid_results['feature_set'] == 'Day3']['accuracy_mean'].idxmax()
+    best_sprint3 = valid_results[valid_results['feature_set'] == 'Sprint3'].loc[
+        valid_results[valid_results['feature_set'] == 'Sprint3']['accuracy_mean'].idxmax()
     ]
 
     print("\n" + "-" * 60)
@@ -379,8 +380,8 @@ def main():
     print("-" * 60)
     print(f"  Overall: {best_overall['model']} on {best_overall['feature_set']} "
           f"(Acc: {best_overall['accuracy_mean']:.4f})")
-    print(f"  Day 2:   {best_day2['model']} (Acc: {best_day2['accuracy_mean']:.4f})")
-    print(f"  Day 3:   {best_day3['model']} (Acc: {best_day3['accuracy_mean']:.4f})")
+    print(f"  Sprint 2:   {best_sprint2['model']} (Acc: {best_sprint2['accuracy_mean']:.4f})")
+    print(f"  Sprint 3:   {best_sprint3['model']} (Acc: {best_sprint3['accuracy_mean']:.4f})")
 
     # Generate submissions
     print("\n" + "-" * 60)
@@ -390,39 +391,39 @@ def main():
     # Best overall
     print(f"  Training {best_overall['model']} for best overall submission...")
     best_overall_models = get_models(n_neg, n_pos)
-    if best_overall['feature_set'] == 'Day2':
+    if best_overall['feature_set'] == 'Sprint2':
         generate_submission(
             best_overall_models[best_overall['model']],
-            X_day2, y, X_test_day2, test_ids,
+            X_sprint2, y, X_test_sprint2, test_ids,
             'submission_best_overall.csv'
         )
     else:
         generate_submission(
             best_overall_models[best_overall['model']],
-            X_day3, y, X_test_day3, test_ids,
+            X_sprint3, y, X_test_sprint3, test_ids,
             'submission_best_overall.csv'
         )
     print("    -> submission_best_overall.csv")
 
-    # Best Day 2
-    print(f"  Training {best_day2['model']} for best Day 2 submission...")
-    best_day2_models = get_models(n_neg, n_pos)
+    # Best Sprint 2
+    print(f"  Training {best_sprint2['model']} for best Sprint 2 submission...")
+    best_sprint2_models = get_models(n_neg, n_pos)
     generate_submission(
-        best_day2_models[best_day2['model']],
-        X_day2, y, X_test_day2, test_ids,
-        'submission_best_day2.csv'
+        best_sprint2_models[best_sprint2['model']],
+        X_sprint2, y, X_test_sprint2, test_ids,
+        'submission_best_sprint2.csv'
     )
-    print("    -> submission_best_day2.csv")
+    print("    -> submission_best_sprint2.csv")
 
-    # Best Day 3
-    print(f"  Training {best_day3['model']} for best Day 3 submission...")
-    best_day3_models = get_models(n_neg, n_pos)
+    # Best Sprint 3
+    print(f"  Training {best_sprint3['model']} for best Sprint 3 submission...")
+    best_sprint3_models = get_models(n_neg, n_pos)
     generate_submission(
-        best_day3_models[best_day3['model']],
-        X_day3, y, X_test_day3, test_ids,
-        'submission_best_day3.csv'
+        best_sprint3_models[best_sprint3['model']],
+        X_sprint3, y, X_test_sprint3, test_ids,
+        'submission_best_sprint3.csv'
     )
-    print("    -> submission_best_day3.csv")
+    print("    -> submission_best_sprint3.csv")
 
     # Print summary table
     print("\n" + "=" * 60)

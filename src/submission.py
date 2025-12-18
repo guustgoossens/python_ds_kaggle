@@ -3,7 +3,7 @@ Submission generation module for churn prediction.
 
 Usage:
     python submission.py                    # Generate submission with default model
-    python submission.py --name day3        # Custom submission name -> submission_day3.csv
+    python submission.py --name sprint3     # Custom submission name -> submission_sprint3.csv
     python submission.py --threshold 0.5    # Custom probability threshold
 """
 
@@ -94,7 +94,7 @@ def add_transforms(df, features_to_square, features_to_log):
 
 
 def engineer_features(train_df, test_df):
-    """Apply all Day 3 feature engineering."""
+    """Apply all Sprint 3 feature engineering."""
 
     # Polynomial interaction setup
     top_features = ['days_active', 'events_per_day', 'songs_per_day', 'ad_ratio', 'thumbs_down_ratio']

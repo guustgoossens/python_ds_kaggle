@@ -35,7 +35,7 @@ from lifelines import CoxPHFitter
 cph = CoxPHFitter()
 cph.fit(df, duration_col='duration', event_col='churned')
 
-# Predict survival probability at day 30
+# Predict survival probability at Sprint 30
 cph.predict_survival_function(X_test, times=[30])
 ```
 
@@ -59,11 +59,11 @@ Use ONLY data from a fixed early period (e.g., first 7 days) for ALL users, rega
 - **Mimics production**: In real world, you'd predict from early behavior
 
 ### Variations to try
-| Window | Prediction target |
-|--------|-------------------|
-| First 3 days | Churn in days 4-50 |
-| First 7 days | Churn in days 8-50 |
-| First 14 days | Churn in days 15-50 |
+| Window           | Prediction target              |
+| ---------------- | ------------------------------ |
+| First 3 days     | Churn in days 4-50             |
+| First 7 days     | Churn in days 8-50             |
+| First 14 days    | Churn in days 15-50            |
 | Days 1-7 vs 8-14 | Behavior change predicts churn |
 
 ### Better feature ideas for fixed window
@@ -106,12 +106,12 @@ User 2: [Home, NextSong, Error, Help, Settings, Logout]
 ```
 
 ### Architecture options
-| Model | Pros | Cons |
-|-------|------|------|
-| LSTM | Good at sequences, proven | Slow to train |
-| GRU | Faster than LSTM | Slightly less powerful |
-| Transformer | State-of-art, attention | Needs more data |
-| 1D CNN | Fast, captures local patterns | Less temporal awareness |
+| Model       | Pros                          | Cons                    |
+| ----------- | ----------------------------- | ----------------------- |
+| LSTM        | Good at sequences, proven     | Slow to train           |
+| GRU         | Faster than LSTM              | Slightly less powerful  |
+| Transformer | State-of-art, attention       | Needs more data         |
+| 1D CNN      | Fast, captures local patterns | Less temporal awareness |
 
 ### Implementation sketch
 ```python
@@ -289,12 +289,12 @@ Treat each user's daily engagement as a time series, use specialized time-series
 - **Pattern matching**: Find users whose curves look like past churners
 
 ### Methods
-| Method | Description |
-|--------|-------------|
-| DTW (Dynamic Time Warping) | Similarity measure for time series |
-| ROCKET | Random convolutional kernels, very fast |
-| TSFresh | Automatic feature extraction from time series |
-| Catch22 | 22 canonical time-series features |
+| Method                     | Description                                   |
+| -------------------------- | --------------------------------------------- |
+| DTW (Dynamic Time Warping) | Similarity measure for time series            |
+| ROCKET                     | Random convolutional kernels, very fast       |
+| TSFresh                    | Automatic feature extraction from time series |
+| Catch22                    | 22 canonical time-series features             |
 
 ### Implementation
 ```python
@@ -363,11 +363,11 @@ final_pred = np.mean([m.predict_proba(X)[:, 1] for m in models.values()], axis=0
 
 ## Recommended Priority
 
-| Priority | Approach | Why |
-|----------|----------|-----|
-| 1 | **Fixed-window improvements** | Already working, easy to iterate |
-| 2 | **Session-level features** | Natural granularity, moderate effort |
-| 3 | **Change-point detection** | Captures disengagement process |
-| 4 | **Survival analysis** | Proper statistical framework |
-| 5 | **Time-series (ROCKET)** | If above don't work, try this |
-| 6 | **Sequence modeling** | Last resort, needs more data/compute |
+| Priority | Approach                      | Why                                  |
+| -------- | ----------------------------- | ------------------------------------ |
+| 1        | **Fixed-window improvements** | Already working, easy to iterate     |
+| 2        | **Session-level features**    | Natural granularity, moderate effort |
+| 3        | **Change-point detection**    | Captures disengagement process       |
+| 4        | **Survival analysis**         | Proper statistical framework         |
+| 5        | **Time-series (ROCKET)**      | If above don't work, try this        |
+| 6        | **Sequence modeling**         | Last resort, needs more data/compute |

@@ -6,13 +6,13 @@ This document captures all major experiments, failures, and insights after the i
 
 ## The Generalization Gap Problem
 
-| Phase | CV Accuracy | Test Accuracy | Gap |
-|-------|-------------|---------------|-----|
-| Initial (leaked features) | 88% | ~50% | -38 pts |
-| Fixed window RF | 75% | 61.3% | -14 pts |
-| Enhanced features | 74% | 59.2% | -15 pts |
-| Gradient Boosting alone | 80% | 55.7% | -24 pts |
-| **Ensemble + top 30%** | ~76% | **62.3%** | -14 pts |
+| Phase                     | CV Accuracy | Test Accuracy | Gap     |
+| ------------------------- | ----------- | ------------- | ------- |
+| Initial (leaked features) | 88%         | ~50%          | -38 pts |
+| Fixed window RF           | 75%         | 61.3%         | -14 pts |
+| Enhanced features         | 74%         | 59.2%         | -15 pts |
+| Gradient Boosting alone   | 80%         | 55.7%         | -24 pts |
+| **Ensemble + top 30%**    | ~76%        | **62.3%**     | -14 pts |
 
 **Pattern**: Higher CV accuracy → worse test performance. The models that "learned more" generalized worse. The best result came from combining insights: fixed window + ensemble + threshold calibration.
 
@@ -28,7 +28,7 @@ Churners days_active:     mean=20.3, max=50
 Non-churners days_active: mean=35.6, max=50
 ```
 
-When a user churns on day 10, they only have ~10 days of data. The model learned "low activity = churner" which is **tautological** in training but meaningless in test.
+When a user churns on Sprint 10, they only have ~10 days of data. The model learned "low activity = churner" which is **tautological** in training but meaningless in test.
 
 ### Evidence of Leakage
 ```
@@ -56,14 +56,14 @@ Use ONLY the first N days for ALL users → equal observation time → no leakag
 
 ### Results by Window Size
 
-| Window | Model | CV Accuracy | Test Accuracy |
-|--------|-------|-------------|---------------|
-| 7 days | RF | 74.7% | **61.3%** |
-| 7 days | GB | 79.8% | 55.7% |
-| 10 days | RF | 74.8% | - |
-| 10 days | GB | 80.1% | - |
-| 14 days | RF | 75.0% | - |
-| 14 days | GB | 80.6% | 55.7% |
+| Window  | Model | CV Accuracy | Test Accuracy |
+| ------- | ----- | ----------- | ------------- |
+| 7 days  | RF    | 74.7%       | **61.3%**     |
+| 7 days  | GB    | 79.8%       | 55.7%         |
+| 10 days | RF    | 74.8%       | -             |
+| 10 days | GB    | 80.1%       | -             |
+| 14 days | RF    | 75.0%       | -             |
+| 14 days | GB    | 80.6%       | 55.7%         |
 
 **Key insight**: Shorter window (7 days) + simpler model (RF) performed best. Longer windows and more complex models overfit.
 
@@ -112,10 +112,10 @@ Enhanced (52 features): 74.3% CV → 59.2% test
 
 ### Gradient Boosting vs Random Forest
 
-| Model | CV Accuracy | Test Accuracy |
-|-------|-------------|---------------|
-| Random Forest | 74.7% | **61.3%** |
-| Gradient Boosting | 79.8% | 55.7% |
+| Model             | CV Accuracy | Test Accuracy |
+| ----------------- | ----------- | ------------- |
+| Random Forest     | 74.7%       | **61.3%**     |
+| Gradient Boosting | 79.8%       | 55.7%         |
 
 GB achieves higher CV by fitting training data better, but RF generalizes better. **The train/test distribution shift penalizes complex models.**
 
@@ -154,11 +154,11 @@ After hitting 61.3% with the fixed-window RF approach, we explored alternative p
 
 ### Approach Comparison
 
-| Technique | Alternative | Original |
-|-----------|-------------|----------|
-| Threshold | Top K% by probability | p > 0.5 |
-| Model | GB + RF ensemble | RF alone |
-| Features | Log transforms | Raw features |
+| Technique | Alternative           | Original     |
+| --------- | --------------------- | ------------ |
+| Threshold | Top K% by probability | p > 0.5      |
+| Model     | GB + RF ensemble      | RF alone     |
+| Features  | Log transforms        | Raw features |
 
 ### Key Insight: Top-K% Thresholding
 Instead of using `probability > 0.5`, we ranked all users by churn probability and predicted the top K% as churners:
@@ -185,14 +185,14 @@ After adopting the ensemble approach, we tested different top-K% thresholds:
 
 ### Results by Threshold
 
-| Threshold | Predicted Churners | Test Accuracy |
-|-----------|-------------------|---------------|
-| Top 22% | 638 | - |
-| Top 30% | 871 | **62.3%** ← NEW HIGH |
-| Top 35% | 1,016 | - |
-| Top 40% | 1,161 | 60.9% |
-| Top 46% | 1,335 | 61.3% |
-| Top 50% | 1,452 | 60.1% |
+| Threshold | Predicted Churners | Test Accuracy        |
+| --------- | ------------------ | -------------------- |
+| Top 22%   | 638                | -                    |
+| Top 30%   | 871                | **62.3%** ← NEW HIGH |
+| Top 35%   | 1,016              | -                    |
+| Top 40%   | 1,161              | 60.9%                |
+| Top 46%   | 1,335              | 61.3%                |
+| Top 50%   | 1,452              | 60.1%                |
 
 **Critical insight**: Optimal threshold (30%) is closer to training churn rate (22%) than our initial guess of 46%. The relationship is non-monotonic - both too few and too many predictions hurt accuracy.
 
@@ -213,13 +213,13 @@ After adopting the ensemble approach, we tested different top-K% thresholds:
 
 ### Train vs Test Feature Distributions
 
-| Feature | Train Mean | Test Mean | Ratio |
-|---------|------------|-----------|-------|
-| total_sessions | 10.9 | 61.3 | **5.6x** |
-| level_changes | 0.83 | 68.5 | **83x** |
-| page_home | 33.7 | 165.9 | **4.9x** |
-| page_help | 4.65 | 14.0 | **3.0x** |
-| total_events | 914 | 1,513 | 1.7x |
+| Feature        | Train Mean | Test Mean | Ratio    |
+| -------------- | ---------- | --------- | -------- |
+| total_sessions | 10.9       | 61.3      | **5.6x** |
+| level_changes  | 0.83       | 68.5      | **83x**  |
+| page_home      | 33.7       | 165.9     | **4.9x** |
+| page_help      | 4.65       | 14.0      | **3.0x** |
+| total_events   | 914        | 1,513     | 1.7x     |
 
 **Massive distribution shift** on key features. Test users have wildly different behavior patterns.
 
@@ -300,11 +300,11 @@ predictions[np.argsort(proba)[-n_churn:]] = 1
 
 For reproducibility, the following scripts were created:
 
-| Script | Purpose | Usage |
-|--------|---------|-------|
-| `fixed_window_model.py` | Base fixed-window approach | `python fixed_window_model.py --submission` |
-| `gda_model.py` | Gaussian Discriminant Analysis | `python gda_model.py --submission` |
-| `submission_topk.py` | Top-K% threshold with ensemble | `python submission_topk.py --pct 0.30` |
+| Script                  | Purpose                        | Usage                                       |
+| ----------------------- | ------------------------------ | ------------------------------------------- |
+| `fixed_window_model.py` | Base fixed-window approach     | `python fixed_window_model.py --submission` |
+| `gda_model.py`          | Gaussian Discriminant Analysis | `python gda_model.py --submission`          |
+| `submission_topk.py`    | Top-K% threshold with ensemble | `python submission_topk.py --pct 0.30`      |
 
 ### Best Result Reproduction
 ```bash
@@ -316,14 +316,14 @@ python submission_topk.py --pct 0.30
 
 ## Appendix: All Submissions Attempted
 
-| Submission | Approach | Test Accuracy |
-|------------|----------|---------------|
-| Original leaked | Full data, RF | ~50% |
-| Fixed 7-day base | RF, p>0.5 | 61.3% |
-| Fixed 7-day enhanced | RF + trajectory/session/gap | 59.2% |
-| Fixed 14-day GB | Gradient Boosting | 55.7% |
-| GDA (LDA) | Gaussian transforms | ~50% |
-| Ensemble top 30% | GB+RF, threshold | **62.3%** ← BEST |
-| Ensemble top 40% | GB+RF, threshold | 60.9% |
-| Ensemble top 46% | GB+RF, threshold | 61.3% |
-| Ensemble top 50% | GB+RF, threshold | 60.1% |
+| Submission           | Approach                    | Test Accuracy    |
+| -------------------- | --------------------------- | ---------------- |
+| Original leaked      | Full data, RF               | ~50%             |
+| Fixed 7-day base     | RF, p>0.5                   | 61.3%            |
+| Fixed 7-day enhanced | RF + trajectory/session/gap | 59.2%            |
+| Fixed 14-day GB      | Gradient Boosting           | 55.7%            |
+| GDA (LDA)            | Gaussian transforms         | ~50%             |
+| Ensemble top 30%     | GB+RF, threshold            | **62.3%** ← BEST |
+| Ensemble top 40%     | GB+RF, threshold            | 60.9%            |
+| Ensemble top 46%     | GB+RF, threshold            | 61.3%            |
+| Ensemble top 50%     | GB+RF, threshold            | 60.1%            |

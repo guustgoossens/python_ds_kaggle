@@ -1,14 +1,14 @@
-# Churn Prediction Project - 4-Day Implementation Plan
+# Churn Prediction Project - 4-Sprint Implementation Plan
 
 ## Key Insights from Data Exploration
 
 ### Data Quality Summary
-| Issue | Severity | Action |
-|-------|----------|--------|
-| Song/artist/length missing (18%) | None | Expected - only on non-music pages |
-| Demographics missing in test (15%) | Low | Logged-out sessions - impute "Unknown" |
-| Song length outliers (0.5-3024 sec) | Low | Cap at 1200 seconds |
-| Class imbalance (22% churn) | Medium | Use class_weight='balanced' |
+| Issue                               | Severity | Action                                 |
+| ----------------------------------- | -------- | -------------------------------------- |
+| Song/artist/length missing (18%)    | None     | Expected - only on non-music pages     |
+| Demographics missing in test (15%)  | Low      | Logged-out sessions - impute "Unknown" |
+| Song length outliers (0.5-3024 sec) | Low      | Cap at 1200 seconds                    |
+| Class imbalance (22% churn)         | Medium   | Use class_weight='balanced'            |
 
 ### Activity Levels
 - Churned users: ~918 events/user average
@@ -33,7 +33,7 @@
 
 ---
 
-## Day 1: Data Pipeline & Feature Engineering Foundation
+## Sprint 1: Data Pipeline & Feature Engineering Foundation
 
 ### Goal: Transform event logs → user-level features
 
@@ -220,7 +220,7 @@ print(f"Test set shape: {test_features.shape}")
 test_features.to_parquet('test_features.parquet', index=False)
 ```
 
-### Day 1 Deliverables:
+### Sprint 1 Deliverables:
 - [ ] Feature engineering function working
 - [ ] Train features created (~19,140 rows, 30+ features)
 - [ ] Test features created (~2,904 rows)
@@ -228,7 +228,7 @@ test_features.to_parquet('test_features.parquet', index=False)
 
 ---
 
-## Day 2: Baseline Models & Validation Strategy
+## Sprint 2: Baseline Models & Validation Strategy
 
 ### Goal: Train baseline models, establish validation approach
 
@@ -336,7 +336,7 @@ rf_cv_scores = cross_val_score(rf, X, y, cv=cv, scoring='accuracy')
 print(f"\nRandom Forest CV Accuracy: {rf_cv_scores.mean():.4f} (+/- {rf_cv_scores.std()*2:.4f})")
 ```
 
-### Day 2 Deliverables:
+### Sprint 2 Deliverables:
 - [ ] Validation split created (80/20 stratified)
 - [ ] Logistic Regression baseline trained and evaluated
 - [ ] Random Forest baseline trained and evaluated
@@ -345,7 +345,7 @@ print(f"\nRandom Forest CV Accuracy: {rf_cv_scores.mean():.4f} (+/- {rf_cv_score
 
 ---
 
-## Day 3: Advanced Models & Temporal Slicing Experiment
+## Sprint 3: Advanced Models & Temporal Slicing Experiment
 
 ### Goal: Try LightGBM, experiment with temporal slicing approach
 
@@ -443,7 +443,7 @@ def create_single_user_features(user_data, observation_end):
     f['total_songs'] = (user_data['page'] == 'NextSong').sum()
     f['total_sessions'] = user_data['sessionId'].nunique()
 
-    # ... (same features as Day 1 function)
+    # ... (same features as the Sprint 1 function)
 
     # Recency feature is now meaningful
     f['days_since_last_activity'] = (observation_end - user_data['time'].max()).days
@@ -525,7 +525,7 @@ print(f"Best parameters: {search.best_params_}")
 print(f"Best CV accuracy: {search.best_score_:.4f}")
 ```
 
-### Day 3 Deliverables:
+### Sprint 3 Deliverables:
 - [ ] LightGBM model trained and evaluated
 - [ ] Temporal slicing implemented and compared to simple approach
 - [ ] Hyperparameter tuning completed
@@ -533,17 +533,17 @@ print(f"Best CV accuracy: {search.best_score_:.4f}")
 
 ---
 
-## Day 4: Final Model, Submission & Report Start
+## Sprint 4: Final Model, Submission & Report Start
 
 ### Goal: Generate predictions, create submission, start report
 
 ### Step 4.1: Train Final Model on Full Training Data
 
 ```python
-# Use best model from Day 3 experiments
+# Use best model from the Sprint 3 experiments
 # Example: LightGBM with tuned parameters
 
-best_params = search.best_params_  # From Day 3
+best_params = search.best_params_  # From the Sprint 3
 
 final_model = lgb.LGBMClassifier(
     **best_params,
@@ -625,7 +625,7 @@ plt.savefig('feature_importance.png', dpi=150)
 plt.show()
 ```
 
-### Day 4 Deliverables:
+### Sprint 4 Deliverables:
 - [ ] Final model trained on full training data
 - [ ] Test predictions generated
 - [ ] Submission file created and verified

@@ -1,4 +1,4 @@
-# Day 1: Data Pipeline & Feature Engineering
+# Sprint 1: Data Pipeline & Feature Engineering
 
 ## Summary
 Transformed 17.5M event logs into 19,140 user-level feature vectors (43 features each) for churn prediction.
@@ -36,15 +36,15 @@ page_counts = pd.crosstab(page_df['userId'], page_df['page'])
 
 ## Feature Categories Implemented
 
-| Category | Features | Rationale |
-|----------|----------|-----------|
-| Engagement | total_events, total_songs, total_sessions, session_length stats | Activity volume indicators |
-| Page counts | 13 important pages (NextSong, Thumbs Up/Down, Downgrade, etc.) | Behavioral signals |
-| Behavioral ratios | thumbs_up/down_ratio, playlist_add_ratio, error_rate, ad_ratio | Normalized engagement quality |
-| Temporal | days_active, days_since_registration, events_per_day, activity_trend | Usage patterns over time |
-| Subscription | is_paid, level_changes, has_downgrade, has_upgrade, paid_ratio | Subscription lifecycle |
-| Content | unique_songs/artists, song_repeat_ratio, listen_time | Content engagement depth |
-| Demographics | gender, state | User attributes |
+| Category          | Features                                                             | Rationale                     |
+| ----------------- | -------------------------------------------------------------------- | ----------------------------- |
+| Engagement        | total_events, total_songs, total_sessions, session_length stats      | Activity volume indicators    |
+| Page counts       | 13 important pages (NextSong, Thumbs Up/Down, Downgrade, etc.)       | Behavioral signals            |
+| Behavioral ratios | thumbs_up/down_ratio, playlist_add_ratio, error_rate, ad_ratio       | Normalized engagement quality |
+| Temporal          | days_active, days_since_registration, events_per_day, activity_trend | Usage patterns over time      |
+| Subscription      | is_paid, level_changes, has_downgrade, has_upgrade, paid_ratio       | Subscription lifecycle        |
+| Content           | unique_songs/artists, song_repeat_ratio, listen_time                 | Content engagement depth      |
+| Demographics      | gender, state                                                        | User attributes               |
 
 ## Data Leakage Prevention
 
@@ -71,10 +71,10 @@ features['gender'] = features['gender'].fillna('Unknown').astype(str)
 
 ## Output Files
 
-| File | Rows | Columns | Size |
-|------|------|---------|------|
+| File                   | Rows   | Columns                           | Size  |
+| ---------------------- | ------ | --------------------------------- | ----- |
 | train_features.parquet | 19,140 | 45 (43 features + userId + churn) | 2.5MB |
-| test_features.parquet | 2,904 | 44 (43 features + userId) | 492KB |
+| test_features.parquet  | 2,904  | 44 (43 features + userId)         | 492KB |
 
 ## Verification
 - No missing values in either dataset
